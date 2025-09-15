@@ -1,59 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>URL Shortener + QR Code Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    input { padding: 5px; margin: 5px; }
+    button { padding: 5px 10px; }
+    #qrcode { margin-top: 20px; }
+  </style>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding:30px; background:#f2f2f2;">
-<h2>URL Shortener + QR Code Generator</h2>
-<input type="text" id="longUrl" placeholder="Enter long URL" style="width:60%; padding:10px;">
-<button onclick="shorten()" style="padding:10px 15px;">Shorten</button>
+<body>
+  <h1>URL Shortener + QR Code Generator</h1>
+  <form id="shortenForm" onsubmit="shortenURL(event)">
+    <input type="url" id="urlInput" placeholder="Enter URL" required>
+    <button type="submit">Shorten</button>
+  </form>
+  <div id="result">
+    <p>Short URL: <a id="shortLink" href="#" target="_blank"></a></p>
+    <button id="downloadQR" style="display:none;">Download QR</button>
+    <div id="qrcode"></div>
+  </div>
 
-<p id="result" style="margin-top:20px;"></p>
-<div id="qrcode" style="margin:20px auto;"></div>
-<button id="downloadBtn" style="display:none; padding:10px 15px;" onclick="downloadQR()">Download QR</button>
+  <script>
+    async function shortenURL(event) {
+      event.preventDefault();
+      const url = document.getElementById('urlInput').value;
+      const response = await fetch(`YOUR_GOOGLE_SCRIPT_URL?action=create&url=${encodeURIComponent(url)}`);
+      const shortCode = await response.text();
+      if (shortCode.length === 6) { // Assuming 6-char code
+        const shortLink = `https://script.google.com/macros/s/AKfycbw9R9TZPyBOxBKkCDSrs6oFH5cn5T9gow_uOVmv88Xyzr6QP6BemFMayKgyfYA1cDp0/exec?c=${shortCode}`;
+        document.getElementById('shortLink').href = shortLink;
+        document.getElementById('shortLink').textContent = shortLink;
+        document.getElementById('downloadQR').style.display = 'inline';
+        generateQR(shortLink);
+      } else {
+        alert('Error generating short URL');
+      }
+    }
 
-<script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9R9TZPyBOxBKkCDSrs6oFH5cn5T9gow_uOVmv88Xyzr6QP6BemFMayKgyfYA1cDp0/exec'; // Replace with your Web App URL
-
-async function shorten(){
-  const url = document.getElementById('longUrl').value.trim();
-  if(!url){ alert('Enter a URL'); return; }
-  
-  const finalUrl = /^https?:\/\//.test(url) ? url : 'https://' + url;
-  
-  // Create short code
-  const code = await fetch(`${SCRIPT_URL}?action=create&url=${encodeURIComponent(finalUrl)}`)
-    .then(r=>r.text());
-  
-  const shortLink = `${SCRIPT_URL}?c=${code}`;
-  
-  // Display and copy short link
-  document.getElementById('result').innerHTML = `<a href="${shortLink}" target="_blank">${shortLink}</a>`;
-  navigator.clipboard.writeText(shortLink).then(() => alert('Short link copied to clipboard!'));
-  
-  // Generate QR code
-  document.getElementById('qrcode').innerHTML = '';
-  new QRCode(document.getElementById('qrcode'), {
-    text: shortLink,
-    width: 180,
-    height: 180
-  });
-  
-  // Show download button
-  document.getElementById('downloadBtn').style.display = 'inline-block';
-}
-
-function downloadQR(){
-  const qrImg = document.querySelector('#qrcode img');
-  if(!qrImg) return alert('Generate QR code first');
-  const a = document.createElement('a');
-  a.href = qrImg.src;
-  a.download = 'shortlink_qr.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-</script>
+    function generateQR(url) {
+      const qrcodeDiv = document.getElementById('qrcode');
+      qrcodeDiv.innerHTML = '';
+      new QRCode(qrcodeDiv, {
+        text: url,
+        width: 128,
+        height: 128,
+        colorDark: '#000000',
+        colorLight: '#ffffff'
+      });
+      document.getElementById('downloadQR').onclick = () => {
+        const canvas = qrcodeDiv.querySelector('canvas');
+        const link = document.createElement('a');
+        link.download = 'qrcode.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+    }
+  </script>
 </body>
 </html>
