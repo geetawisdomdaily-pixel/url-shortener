@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>URL Shortener + QR Code Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:30px; background:#f2f2f2;">
+<h2>URL Shortener + QR Code Generator</h2>
+<input type="text" id="longUrl" placeholder="Enter long URL" style="width:60%; padding:10px;">
+<button onclick="shorten()" style="padding:10px 15px;">Shorten</button>
+
+<p id="result" style="margin-top:20px;"></p>
+<div id="qrcode" style="margin:20px auto;"></div>
+<button id="downloadBtn" style="display:none; padding:10px 15px;" onclick="downloadQR()">Download QR</button>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9R9TZPyBOxBKkCDSrs6oFH5cn5T9gow_uOVmv88Xyzr6QP6BemFMayKgyfYA1cDp0/exec'; // Replace with your Web App URL
+
+async function shorten(){
+  const url = document.getElementById('longUrl').value.trim();
+  if(!url){ alert('Enter a URL'); return; }
+  
+  const finalUrl = /^https?:\/\//.test(url) ? url : 'https://' + url;
+  
+  // Create short code
+  const code = await fetch(`${SCRIPT_URL}?action=create&url=${encodeURIComponent(finalUrl)}`)
+    .then(r=>r.text());
+  
+  const shortLink = `${SCRIPT_URL}?c=${code}`;
+  
+  // Display and copy short link
+  document.getElementById('result').innerHTML = `<a href="${shortLink}" target="_blank">${shortLink}</a>`;
+  navigator.clipboard.writeText(shortLink).then(() => alert('Short link copied to clipboard!'));
+  
+  // Generate QR code
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), {
+    text: shortLink,
+    width: 180,
+    height: 180
+  });
+  
+  // Show download button
+  document.getElementById('downloadBtn').style.display = 'inline-block';
+}
+
+function downloadQR(){
+  const qrImg = document.querySelector('#qrcode img');
+  if(!qrImg) return alert('Generate QR code first');
+  const a = document.createElement('a');
+  a.href = qrImg.src;
+  a.download = 'shortlink_qr.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
