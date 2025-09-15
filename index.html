@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>URL Shortener + QR Code Generator</title>
-  <script src="Js/qrcode.min.js"></script> <!-- Updated to 1.7.0 -->
+  <script src="/Js/qrcode.min.js"></script> <!-- New qrcode-generator -->
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
     input { padding: 5px; margin: 5px; }
@@ -34,6 +34,7 @@
       
       try {
         const response = await fetch(scriptUrl + '?action=create&url=' + encodeURIComponent(url));
+        console.log('Response status:', response.status);
         const shortCode = await response.text();
         console.log('Response received:', shortCode);
         
@@ -50,15 +51,14 @@
         }
       } catch (error) {
         console.error('Fetch error:', error);
-        document.getElementById('errorMsg').textContent = 'Error: Network issue or server unavailable';
+        document.getElementById('errorMsg').textContent = 'Error: Network issue or server unavailable. Status: ' + (error.message || 'Unknown');
         document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
     function generateQR(url) {
       const qrcodeDiv = document.getElementById('qrcode');
-      qrcodeDiv.innerHTML = '';
-      // Ensure QRCode is available
+      qrcodeDiv.innerHTML = ''; // Clear previous content
       if (typeof QRCode === 'undefined') {
         console.error('QRCode library not loaded');
         document.getElementById('errorMsg').textContent = 'Error: QRCode library failed to load. Please check your internet connection or try refreshing.';
@@ -70,8 +70,9 @@
           text: url,
           width: 128,
           height: 128,
-          colorDark: '#000000',
-          colorLight: '#ffffff'
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H // Medium error correction
         });
         document.getElementById('downloadQR').onclick = () => {
           const canvas = qrcodeDiv.querySelector('canvas');
@@ -95,6 +96,3 @@
   </script>
 </body>
 </html>
-
-
-
