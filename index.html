@@ -29,7 +29,7 @@
     async function shortenURL(event) {
       event.preventDefault();
       const url = document.getElementById('urlInput').value;
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbwIa9G5NI01oNxxSHSzYsO9dT5xaGxI_OyMYvqk3A21BDM8oL1-UqO1Gfx4byToP60m/exec'; // Replace with your actual URL
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbxcyHhn2tKMGDKdRIE0QFXSKXQa3294Z-9cLzWMPynavIp-IZ6xxE2BHdi1RH8SvKIC/exec'; // Replace with your actual URL
       console.log('Sending request to:', scriptUrl + '?action=create&url=' + encodeURIComponent(url));
       
       try {
@@ -76,4 +76,5 @@
   </script>
 </body>
 </html>
+
 
