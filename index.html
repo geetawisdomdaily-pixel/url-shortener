@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>URL Shortener + QR Code Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script> <!-- Updated to 1.5.3 for stability -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.7.0/build/qrcode.min.js"></script> <!-- Updated to 1.7.0 -->
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
     input { padding: 5px; margin: 5px; }
@@ -29,7 +29,7 @@
     async function shortenURL(event) {
       event.preventDefault();
       const url = document.getElementById('urlInput').value;
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbxcyHhn2tKMGDKdRIE0QFXSKXQa3294Z-9cLzWMPynavIp-IZ6xxE2BHdi1RH8SvKIC/exec'; // Your current script URL
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbxcyHhn2tKMGDKdRIE0QFXSKXQa3294Z-9cLzWMPynavIp-IZ6xxE2BHdi1RH8SvKIC/exec';
       console.log('Sending request to:', scriptUrl + '?action=create&url=' + encodeURIComponent(url));
       
       try {
@@ -58,10 +58,10 @@
     function generateQR(url) {
       const qrcodeDiv = document.getElementById('qrcode');
       qrcodeDiv.innerHTML = '';
-      // Ensure QRCode is available, fallback if not
+      // Ensure QRCode is available
       if (typeof QRCode === 'undefined') {
         console.error('QRCode library not loaded');
-        document.getElementById('errorMsg').textContent = 'Error: QRCode library failed to load';
+        document.getElementById('errorMsg').textContent = 'Error: QRCode library failed to load. Please check your internet connection or try refreshing.';
         document.getElementById('errorMsg').style.display = 'block';
         return;
       }
@@ -75,10 +75,16 @@
         });
         document.getElementById('downloadQR').onclick = () => {
           const canvas = qrcodeDiv.querySelector('canvas');
-          const link = document.createElement('a');
-          link.download = 'qrcode.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
+          if (canvas) {
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          } else {
+            console.error('No canvas found for QR code');
+            document.getElementById('errorMsg').textContent = 'Error: Failed to generate downloadable QR code';
+            document.getElementById('errorMsg').style.display = 'block';
+          }
         };
       } catch (error) {
         console.error('QRCode generation error:', error);
