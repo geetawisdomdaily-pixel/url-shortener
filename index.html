@@ -9,6 +9,7 @@
     input { padding: 5px; margin: 5px; }
     button { padding: 5px 10px; }
     #qrcode { margin-top: 20px; }
+    #result { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -21,22 +22,36 @@
     <p>Short URL: <a id="shortLink" href="#" target="_blank"></a></p>
     <button id="downloadQR" style="display:none;">Download QR</button>
     <div id="qrcode"></div>
+    <p id="errorMsg" style="color:red; display:none;"></p>
   </div>
 
   <script>
     async function shortenURL(event) {
       event.preventDefault();
       const url = document.getElementById('urlInput').value;
-      const response = await fetch(`YOUR_GOOGLE_SCRIPT_URL?action=create&url=${encodeURIComponent(url)}`);
-      const shortCode = await response.text();
-      if (shortCode.length === 6) { // Assuming 6-char code
-        const shortLink = `https://script.google.com/macros/s/AKfycbw9R9TZPyBOxBKkCDSrs6oFH5cn5T9gow_uOVmv88Xyzr6QP6BemFMayKgyfYA1cDp0/exec?c=${shortCode}`;
-        document.getElementById('shortLink').href = shortLink;
-        document.getElementById('shortLink').textContent = shortLink;
-        document.getElementById('downloadQR').style.display = 'inline';
-        generateQR(shortLink);
-      } else {
-        alert('Error generating short URL');
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyWS6NnyH04V0-iuDMFZQSt4eEa-RKY8PIjiTOMe26fmQSz6VjpkUbPB5NPGrHRGD7F/exec'; // Replace with your actual URL
+      console.log('Sending request to:', scriptUrl + '?action=create&url=' + encodeURIComponent(url));
+      
+      try {
+        const response = await fetch(scriptUrl + '?action=create&url=' + encodeURIComponent(url));
+        const shortCode = await response.text();
+        console.log('Response received:', shortCode);
+        
+        if (shortCode && shortCode.length === 6) {
+          const shortLink = scriptUrl + '?c=' + shortCode;
+          document.getElementById('shortLink').href = shortLink;
+          document.getElementById('shortLink').textContent = shortLink;
+          document.getElementById('downloadQR').style.display = 'inline';
+          generateQR(shortLink);
+          document.getElementById('errorMsg').style.display = 'none';
+        } else {
+          document.getElementById('errorMsg').textContent = 'Error: ' + (shortCode || 'Invalid response from server');
+          document.getElementById('errorMsg').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        document.getElementById('errorMsg').textContent = 'Error: Network issue or server unavailable';
+        document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
